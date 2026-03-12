@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description"
+        content="Buat twibbon kampanye pencegahan penyakit campak. Upload foto, sesuaikan posisi, dan download hasilnya!">
+    <title>Twibbon Kampanye Pencegahan Campak</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-icon">🛡️</div>
+            <h1>Twibbon Campak</h1>
+            <p class="header-subtitle">Kampanye Pencegahan Penyakit Campak</p>
+        </header>
+
+        <!-- Canvas Preview Area -->
+        <div class="canvas-wrapper" id="canvasWrapper">
+            <canvas id="mainCanvas"></canvas>
+            <div class="placeholder-text" id="placeholderText">
+                <div class="placeholder-icon">📷</div>
+                <span>Tap untuk upload foto</span>
+            </div>
+        </div>
+
+        <!-- Zoom Slider -->
+        <div class="zoom-control" id="zoomControl" style="display:none;">
+            <label for="zoomRange">
+                <span class="zoom-icon">🔍</span> Zoom
+            </label>
+            <div class="slider-container">
+                <span class="zoom-label">−</span>
+                <input type="range" id="zoomRange" min="10" max="300" value="100" step="1">
+                <span class="zoom-label">+</span>
+            </div>
+            <span class="zoom-value" id="zoomValue">100%</span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="actions">
+            <button class="btn btn-upload" id="btnUpload">
+                <span class="btn-icon">📤</span>
+                Upload Foto
+            </button>
+            <button class="btn btn-reset" id="btnReset" disabled>
+                <span class="btn-icon">🔄</span>
+                Reset Posisi
+            </button>
+            <button class="btn btn-download" id="btnDownload" disabled>
+                <span class="btn-icon">💾</span>
+                Download Hasil
+            </button>
+        </div>
+
+        <!-- Hidden file input -->
+        <input type="file" id="fileInput" accept="image/*" style="display:none;">
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Posyandu Apel 1 — Sukabungah</p>
+
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
