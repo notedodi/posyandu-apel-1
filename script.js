@@ -20,9 +20,11 @@
 
     // ===== State =====
     let templateImg = null;
+    let templatePixelData = null; // pixel data to check transparency
     let userImg = null;
     let photoState = { x: 0, y: 0, scale: 1 };
     let isDragging = false;
+    let touchIsOnPhoto = false; // tracks if current touch started on photo area
     let dragStart = { x: 0, y: 0 };
     let lastPhotoState = { x: 0, y: 0 };
 
@@ -35,9 +37,31 @@
         templateImg = new Image();
         templateImg.onload = () => {
             initCanvas();
+            buildTemplatePixelData();
             render();
         };
         templateImg.src = 'template.png';
+    }
+
+    // ===== Build pixel data from template to detect transparent areas =====
+    function buildTemplatePixelData() {
+        const offscreen = document.createElement('canvas');
+        offscreen.width = TEMPLATE_W;
+        offscreen.height = TEMPLATE_H;
+        const offCtx = offscreen.getContext('2d');
+        offCtx.drawImage(templateImg, 0, 0, TEMPLATE_W, TEMPLATE_H);
+        templatePixelData = offCtx.getImageData(0, 0, TEMPLATE_W, TEMPLATE_H).data;
+    }
+
+    // ===== Check if a canvas coordinate is on a transparent (photo) area =====
+    function isPhotoArea(cx, cy) {
+        if (!templatePixelData) return false;
+        const x = Math.round(cx);
+        const y = Math.round(cy);
+        if (x < 0 || x >= TEMPLATE_W || y < 0 || y >= TEMPLATE_H) return false;
+        const idx = (y * TEMPLATE_W + x) * 4;
+        const alpha = templatePixelData[idx + 3];
+        return alpha < 128; // transparent or semi-transparent = photo area
     }
 
     // ===== Init Canvas =====
@@ -101,10 +125,18 @@
         if (!userImg) return;
         if (e.touches && e.touches.length > 1) return; // let pinch handle
 
-        isDragging = true;
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         const coords = getCanvasCoords(clientX, clientY);
+
+        // Only start drag if touching the transparent photo area
+        if (!isPhotoArea(coords.x, coords.y)) {
+            touchIsOnPhoto = false;
+            return; // let page scroll
+        }
+
+        touchIsOnPhoto = true;
+        isDragging = true;
         dragStart.x = coords.x;
         dragStart.y = coords.y;
         lastPhotoState.x = photoState.x;
@@ -126,6 +158,7 @@
 
     function onPointerUp() {
         isDragging = false;
+        touchIsOnPhoto = false;
     }
 
     // ===== Pinch Zoom =====
@@ -142,6 +175,8 @@
             lastPinchScale = photoState.scale;
         } else if (e.touches.length === 1) {
             onPointerDown(e);
+            // Only preventDefault if touch is on the photo area
+            if (touchIsOnPhoto) e.preventDefault();
         }
     }
 
@@ -157,6 +192,8 @@
             zoomValue.textContent = Math.round(photoState.scale * 100) + '%';
             render();
         } else if (e.touches.length === 1) {
+            // Only preventDefault if dragging on photo area
+            if (touchIsOnPhoto) e.preventDefault();
             onPointerMove(e);
         }
     }
@@ -167,12 +204,15 @@
         }
         if (e.touches.length === 0) {
             isDragging = false;
+            touchIsOnPhoto = false;
         }
     }
 
     // ===== Mouse Wheel Zoom =====
     function onWheel(e) {
         if (!userImg) return;
+        const coords = getCanvasCoords(e.clientX, e.clientY);
+        if (!isPhotoArea(coords.x, coords.y)) return; // let page scroll
         e.preventDefault();
         const delta = e.deltaY > 0 ? -0.05 : 0.05;
         photoState.scale = Math.max(0.1, photoState.scale + delta);
